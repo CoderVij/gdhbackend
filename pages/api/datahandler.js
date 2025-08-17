@@ -1,5 +1,5 @@
-import pool from "@/lib/db";
-import cors from '@/lib/cors';
+import pool from "../../lib/db";
+import cors from '../../lib/cors';
 
 
 
