@@ -1,6 +1,6 @@
 import { OAuth2Client } from "google-auth-library";
 import cors from "../../lib/cors";
-import {users} from "../../utils/db.js";
+import {users} from "../../lib/db";
 import generateToken from "jsonwebtoken";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);

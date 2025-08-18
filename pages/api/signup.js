@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import sendVerificationEmail from "./sendVerificationEmail";
 import cors from "../../lib/cors";
-import {users} from "../../utils/db.js";
+import {users} from "../../lib/db";
 
 /*
 const db = mysql.createPool({
