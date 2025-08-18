@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 import cors from "../../lib/cors";
-import {users} from "../../utils/db.js";
+import {users} from "../../lib/db";
 
 
 // Helper: run CORS middleware
