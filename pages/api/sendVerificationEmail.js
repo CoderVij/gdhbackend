@@ -26,7 +26,7 @@ export default async function sendVerificationEmail(user) {
     const verificationLink =
       process.env.DEV_MODE === "true"
         ? `http://localhost:3000/api/verify?token=${token}`
-        : `hhttps://gdhbackend.vercel.app/api/verify?token=${token}`;
+        : `https://gdhbackend.vercel.app/api/verify?token=${token}`;
 
     // Email payload
     const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
