@@ -19,7 +19,7 @@ export default async function sendVerificationEmail(user) {
     const token = jwt.sign(
       { id: user.id, email: user.email, isPremium: user.isPremium },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1h" }
     );
 
     // Build verification link
