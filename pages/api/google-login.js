@@ -54,7 +54,7 @@ export default async function handler(req, res) {
       `token=${token}; HttpOnly; Path=/; Max-Age=2592000; Secure; SameSite=None`
     );
 
-    return res.status(200).json({ message: "Google login successful", isPremium: user.isPremium });
+    return res.status(200).json({ message: "Google login successful", isPremium: user.isPremium, token:token });
   } catch (error) {
     console.error("Google Auth Error:", error);
     res.status(500).json({ message: "Google login failed" });
