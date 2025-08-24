@@ -18,30 +18,8 @@ export default async function handler(req, res) {
   try {
     let user;
 
-    if (googleToken) {
-      //  Google login
-      const ticket = await client.verifyIdToken({
-        idToken: googleToken,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-
-      const payload = ticket.getPayload();
-      const googleEmail = payload.email;
-
-      // Find or create user
-      const [rows] = await users.execute("SELECT * FROM users WHERE email = ?", [googleEmail]);
-      if (rows.length > 0) {
-        user = rows[0];
-      } else {
-        // Auto-register Google user
-        const [result] = await users.execute(
-          "INSERT INTO users (email, isVerified, isPremium) VALUES (?, 1, 0)",
-          [googleEmail]
-        );
-        user = { id: result.insertId, email: googleEmail, isVerified: 1, isPremium: 0 };
-      }
-
-    } else if (email && password) {
+    if (email && password) 
+    {
       //  Email/password login
       const [rows] = await users.execute("SELECT * FROM users WHERE email = ?", [email]);
 
@@ -60,7 +38,8 @@ export default async function handler(req, res) {
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
-    } else {
+    } 
+    else {
       return res.status(400).json({ message: "Missing credentials" });
     }
 

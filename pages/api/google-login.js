@@ -35,8 +35,16 @@ export default async function handler(req, res) {
     let user;
     const [rows] = await users.execute("SELECT id, email, isPremium FROM users WHERE email = ? OR google_id = ?", [email, googleId]);
 
+
     if (rows.length > 0) {
-      // Existing user - LOGIN
+        // User already exists
+        if (mode === "signup") {
+          // Trying to signup but already registered
+          return res.status(409).json({
+            message: "Please login, already signed up",
+            code: "ALREADY_SIGNED_UP"
+          });
+        }
       user = rows[0];
       console.log("Existing user found:", user.id);
       
@@ -60,7 +68,11 @@ export default async function handler(req, res) {
       
     } else {
       // User doesn't exist and mode is login
-      return res.status(404).json({ message: "No account found with this Google account. Please sign up first." });
+      
+      return res.status(404).json({
+        message: "Please sign up first",
+        code: "SIGNUP_REQUIRED"
+      });
     }
 
     // Generate JWT token
@@ -83,7 +95,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ 
       message: `Google ${mode} successful`, 
       isPremium: user.isPremium,
-      token: token
+      token: token,
     });
 
   } catch (error) {
