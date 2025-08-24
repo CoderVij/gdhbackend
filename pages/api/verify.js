@@ -63,7 +63,7 @@ export default async function handler(req, res) {
 
     // Redirect user to success page
     res.writeHead(302, {
-      Location: `${baseUrl}/verification-success`,
+      Location: `${baseUrl}/verificationsuccess`,
     });
     res.end();
   } catch (error) {
