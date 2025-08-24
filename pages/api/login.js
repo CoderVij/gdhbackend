@@ -1,14 +1,23 @@
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import mysql from "mysql2/promise";
 import {users} from "../../lib/db";
-
+import cors from "../../lib/cors";
 
 // Google client
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+
+function runMiddleware(req, res, fn) {
+  
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result) => (result instanceof Error ? reject(result) : resolve(result)));
+  });
+}
+
+
 export default async function handler(req, res) {
+   await runMiddleware(req, res, cors);
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
