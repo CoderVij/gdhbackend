@@ -12,7 +12,7 @@ function runMiddleware(req, res, fn) {
 }
 
 export default async function handler(req, res) {
-  console.log("Google login API hit"); 
+  //console.log("Google login API hit"); 
   await runMiddleware(req, res, cors);
 
   if (req.method === "OPTIONS") return res.status(200).end();
