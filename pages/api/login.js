@@ -70,11 +70,9 @@ export default async function handler(req, res) {
     //  Return profile status
     return res.status(200).json({
       message: "Login successful",
-      user: {
-        id: user.id,
-        email: user.email,
-        isPremium: user.isPremium,
-      },
+      email: user.email,
+      isPremium: user.isPremium,
+      token: token,
       hasProfile,
     });
 

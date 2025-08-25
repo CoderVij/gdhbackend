@@ -96,7 +96,8 @@ export default async function handler(req, res) {
       message: `Google ${mode} successful`, 
       isPremium: user.isPremium,
       token: token,
-      hasProfile
+      hasProfile,
+      email: user.email
     });
 
   } catch (error) {
