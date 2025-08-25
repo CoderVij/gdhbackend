@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { users } from "../../db";
+import { users } from "../../lib/db";
 import cookie from "cookie";
 import cors from "../../lib/cors";
 
@@ -14,7 +14,7 @@ function runMiddleware(req, res, fn) {
 export default async function handler(req, res) {
 
    await runMiddleware(req, res, cors);
-   
+
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
