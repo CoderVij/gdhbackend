@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { users } from "../../lib/db";
-import cookie from "cookie";
+import * as cookie from "cookie";
 import cors from "../../lib/cors";
 
 
