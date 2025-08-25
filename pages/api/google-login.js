@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     let user;
     const [rows] = await users.execute("SELECT id, email, isPremium FROM users WHERE email = ? OR google_id = ?", [email, googleId]);
 
-
+    const hasProfile = rows.length > 0;
     if (rows.length > 0) {
         // User already exists
         if (mode === "signup") {
@@ -96,6 +96,7 @@ export default async function handler(req, res) {
       message: `Google ${mode} successful`, 
       isPremium: user.isPremium,
       token: token,
+      hasProfile
     });
 
   } catch (error) {
