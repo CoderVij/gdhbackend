@@ -12,6 +12,11 @@ function runMiddleware(req, res, fn) {
 export default async function handler(req, res) {
 
   await runMiddleware(req, res, cors);
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end(); 
+  }
+
   if (req.method !== "PUT") {
     return res.status(405).json({ success: false, message: "Method not allowed" });
   }
