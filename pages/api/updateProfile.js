@@ -1,4 +1,4 @@
-import  db  from "../../lib/db";
+import  {users}  from "../../lib/db";
 
 import cors from "../../lib/cors";
 
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, message: "Email is required" });
     }
 
-    const [result] = await db.execute(
+    const [result] = await users.execute(
       `UPDATE developers SET 
         developer_name = ?, 
         type = ?, 
