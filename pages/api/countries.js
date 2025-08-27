@@ -1,4 +1,4 @@
-import developers from "../../lib/db";
+import {developers} from "../../lib/db";
 import cors from "../../lib/cors";
 
 
