@@ -1,4 +1,4 @@
-import db from "../../lib/db";
+import developers from "../../lib/db";
 import cors from "../../lib/cors";
 
 
@@ -14,14 +14,14 @@ export default async function handler(req, res) {
   await runMiddleware(req, res, cors);
        
   try {
-    const [countryRows] = await db.execute(`
+    const [countryRows] = await developers.execute(`
       SELECT country, COUNT(*) AS count
       FROM developers
       GROUP BY country
       ORDER BY count DESC
     `);
 
-    const [totalRows] = await db.execute(`
+    const [totalRows] = await developers.execute(`
       SELECT COUNT(*) AS total FROM developers
     `);
 
