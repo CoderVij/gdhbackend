@@ -8,30 +8,45 @@ function runMiddleware(req, res, fn) {
   });
 }
 
-export default async function handler(req, res) {
+//mode can be 'recent', 'all'
 
-   await runMiddleware(req, res, cors);
+export default async function handler(req, res) 
+{
+    await runMiddleware(req, res, cors);
   try {
-    let { mode, limit } = req.query;
-    limit = parseInt(limit) || null;
+    let { mode = "all", limit = 10, page = 1 } = req.query;
+    limit = parseInt(limit);
+    page = parseInt(page);
 
-    let sql = "SELECT id, developer_name AS name, type, role, country, gender AS avatar, created_at AS joinDate FROM developers";
+    const offset = (page - 1) * limit;
 
-    // Mode handling
+    let sql = `
+      SELECT id, developer_name AS name, type, role, country, gender AS avatar, created_at AS joinDate
+      FROM developers
+    `;
+
+    // Sort mode
     if (mode === "recent") {
       sql += " ORDER BY created_at DESC";
     } else {
-      sql += " ORDER BY developer_name ASC"; // default order
+      sql += " ORDER BY developer_name ASC";
     }
 
-    // Limit handling
-    if (limit) {
-      sql += " LIMIT ?";
-    }
+    // Pagination
+    sql += " LIMIT ? OFFSET ?";
 
-    const [rows] = await developers.execute(sql, limit ? [limit] : []);
+    const [rows] = await db.execute(sql, [limit, offset]);
 
-    res.status(200).json({ success: true, data: rows });
+    // Get total developers (for frontend to calculate total pages)
+    const [totalRows] = await db.execute("SELECT COUNT(*) AS total FROM developers");
+
+    res.status(200).json({
+      success: true,
+      data: rows,
+      total: totalRows[0].total,
+      page,
+      totalPages: Math.ceil(totalRows[0].total / limit),
+    });
   } catch (err) {
     console.error("Error fetching developers:", err);
     res.status(500).json({ success: false, message: "Server error" });
