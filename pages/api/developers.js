@@ -35,10 +35,10 @@ export default async function handler(req, res)
     // Pagination
     sql += " LIMIT ? OFFSET ?";
 
-    const [rows] = await db.execute(sql, [limit, offset]);
+    const [rows] = await developers.execute(sql, [limit, offset]);
 
     // Get total developers (for frontend to calculate total pages)
-    const [totalRows] = await db.execute("SELECT COUNT(*) AS total FROM developers");
+    const [totalRows] = await developers.execute("SELECT COUNT(*) AS total FROM developers");
 
     res.status(200).json({
       success: true,
