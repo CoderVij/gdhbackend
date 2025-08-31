@@ -21,7 +21,7 @@ export default async function handler(req, res)
     const offset = (page - 1) * limit;
 
     let sql = `
-      SELECT id, developer_name AS name, email, type, role, country, gender AS avatar, created_at AS joinDate
+      SELECT *
       FROM developers
     `;
 
