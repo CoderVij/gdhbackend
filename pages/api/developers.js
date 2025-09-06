@@ -19,7 +19,7 @@ export default async function handler(req, res)
     page = parseInt(page);
 
     const offset = (page - 1) * limit;
-
+    //id, developer_name AS name, email, type, role, country, gender AS avatar, created_at AS joinDate
     let sql = `
       SELECT *
       FROM developers
