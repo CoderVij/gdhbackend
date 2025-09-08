@@ -35,7 +35,14 @@ export default async function handler(req, res) {
     let user;
     const [rows] = await users.execute("SELECT id, email, isPremium FROM users WHERE email = ? OR google_id = ?", [email, googleId]);
 
-    const hasProfile = rows.length > 0;
+     //  Check if profile exists in developers table
+    const [profileRows] = await users.execute(
+      "SELECT id FROM developers WHERE email = ? LIMIT 1",
+      [email]
+    );
+    const hasProfile = profileRows.length > 0;
+
+
     if (rows.length > 0) {
         // User already exists
         if (mode === "signup") {
@@ -57,7 +64,7 @@ export default async function handler(req, res) {
       // New user - SIGNUP
       console.log("Creating new user for signup");
       
-      // Check your actual database schema and adjust columns accordingly
+      // Check  actual database schema and adjust columns accordingly
       const [result] = await users.execute(
         "INSERT INTO users (email, google_id, isPremium, isVerified, auth_type) VALUES (?, ?, ?, ?, ?)",
         [email, googleId, 0, 1, "google"]
