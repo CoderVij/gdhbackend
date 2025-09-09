@@ -34,9 +34,12 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: "Profile not found" });
     }
 
+    const hasProfile = rows.length > 0;
+
     return res.status(200).json({
       message: "Profile fetched successfully",
       profile: rows[0],
+      hasProfile:true
     });
   } catch (error) {
     console.error("Error fetching profile:", error);
