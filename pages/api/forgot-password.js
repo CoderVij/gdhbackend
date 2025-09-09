@@ -1,69 +1,82 @@
-import { users } from "../../lib/db";
+import {users} from "../../lib/db";
 import crypto from "crypto";
 import SibApiV3Sdk from "sib-api-v3-sdk";
-
 import cors from "../../lib/cors";
 
-
 function runMiddleware(req, res, fn) {
-    
   return new Promise((resolve, reject) => {
-    fn(req, res, (result) => (result instanceof Error ? reject(result) : resolve(result)));
+    fn(req, res, (result) =>
+      result instanceof Error ? reject(result) : resolve(result)
+    );
   });
 }
 
-
-// Configure Brevo client
+// Configure Brevo (Sendinblue) client
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 const apiKey = defaultClient.authentications["api-key"];
 apiKey.apiKey = process.env.BREVO_API_KEY;
 
 const emailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
-const publicUrl = process.env.DEV_MODE === "true"
-  ? "http://localhost:3000"
-  : "https://gdd.freakoutgames.com";
+const publicUrl =
+  process.env.DEV_MODE === "true"
+    ? "http://localhost:3000"
+    : "https://gdd.freakoutgames.com";
 
 export default async function handler(req, res) {
-
-     await runMiddleware(req, res, cors);
+  await runMiddleware(req, res, cors);
 
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
   const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
 
   try {
-    const user = await users.findOne({ where: { email } });
-    if (!user) {
+    // 1. Check if user exists
+    const [rows] = await users.query("SELECT email FROM users WHERE email = ?", [
+      email,
+    ]);
+
+    if (rows.length === 0) {
       return res.status(404).json({ message: "No account found with this email" });
     }
 
+    // 2. Generate token and expiry
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
-    await users.update(
-      { reset_token: resetToken, reset_token_expiry: resetExpiry },
-      { where: { email } }
+    // 3. Update DB with token + expiry
+    await db.query(
+      "UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE email = ?",
+      [resetToken, resetExpiry, email]
     );
 
-    // Email payload
+    // 4. Send email
+    const resetLink = `${publicUrl}/resetpassword?token=${encodeURIComponent(
+      resetToken
+    )}`;
+
     const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-    sendSmtpEmail.sender = { name: "Game Developers Directory", email: "team@freakoutgames.com" };
-    sendSmtpEmail.to = [{ email: user.email }];
-    sendSmtpEmail.subject = "Reset your Password -GDD";
-    const resetLink = `${publicUrl}/resetpassword?token=${encodeURIComponent(resetToken)}`;
-    sendSmtpEmail.htmlContent =`<p>You requested a password reset. Click <a href="${resetLink}">here</a> to reset your password.</p>
-             <p>This link will expire in 1 hour.</p>`;
+    sendSmtpEmail.sender = {
+      name: "Game Developers Directory",
+      email: "team@freakoutgames.com",
+    };
+    sendSmtpEmail.to = [{ email }];
+    sendSmtpEmail.subject = "Reset your Password - GDD";
+    sendSmtpEmail.htmlContent = `
+      <p>You requested a password reset.</p>
+      <p>Click <a href="${resetLink}">here</a> to reset your password.</p>
+      <p>This link will expire in 1 hour.</p>
+    `;
+    sendSmtpEmail.textContent = `Reset your password: ${resetLink}`;
 
-    sendSmtpEmail.textContent = `Game Developers Directory!\n Reset your Password here: ${verificationLink}`;
-
-    // Send email
     const response = await emailApi.sendTransacEmail(sendSmtpEmail);
+    console.log("Password reset email sent:", response.messageId || response);
 
-    console.log(" Email sent :", response.messageId || response);
-   // return { success: true, messageId: response.messageId || "no-id" };
     res.status(200).json({ message: "Password reset link sent to your email" });
   } catch (err) {
     console.error("Forgot password error:", err);
