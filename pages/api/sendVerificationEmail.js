@@ -30,18 +30,18 @@ export default async function sendVerificationEmail(user) {
 
     // Email payload
     const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-    sendSmtpEmail.sender = { name: "Game Developers Hub", email: "team@freakoutgames.com" };
+    sendSmtpEmail.sender = { name: "Game Developers Directory", email: "team@freakoutgames.com" };
     sendSmtpEmail.to = [{ email: user.email }];
-    sendSmtpEmail.subject = "Verify Your Email - GDH";
+    sendSmtpEmail.subject = "Verify Your Email - GDD";
     sendSmtpEmail.htmlContent = `
-      <h2>Welcome to Game Developers Hub!</h2>
+      <h2>Welcome to Game Developers Directory!</h2>
       <p>Click the button below to verify your email and access your dashboard:</p>
       <a href="${verificationLink}" 
          style="display:inline-block;padding:10px 20px;color:white;background:#007bff;
          text-decoration:none;border-radius:5px;">Verify Email</a>
       <p>If you didn't sign up, please ignore this email.</p>
     `;
-    sendSmtpEmail.textContent = `Welcome to Game Developers Hub!\nVerify your email here: ${verificationLink}`;
+    sendSmtpEmail.textContent = `Welcome to Game Developers Directory!\nVerify your email here: ${verificationLink}`;
 
     // Send email
     const response = await emailApi.sendTransacEmail(sendSmtpEmail);
