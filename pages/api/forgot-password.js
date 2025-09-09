@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
     // 3. Update DB with token + expiry
-    await db.query(
+    await users.query(
       "UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE email = ?",
       [resetToken, resetExpiry, email]
     );
