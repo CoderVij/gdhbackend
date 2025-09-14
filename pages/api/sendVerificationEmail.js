@@ -22,6 +22,7 @@ export default async function sendVerificationEmail(user) {
       { expiresIn: "1h" }
     );
 
+    
     // Build verification link
     const verificationLink =
       process.env.DEV_MODE === "true"
