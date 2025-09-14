@@ -51,7 +51,7 @@ export default async function handler(req, res) {
       { expiresIn: "30d" }
     );
 
-    const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const baseUrl = "https://gdd.freakoutgames.com" || "http://localhost:3000";
 
     // Set login token in HTTP-only cookie
     res.setHeader(
