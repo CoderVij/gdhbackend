@@ -34,6 +34,9 @@ export default async function handler(req, res) {
         description,
       } = req.body;
 
+      console.log("developer email...", developer_email);
+      console.log("game name...", game_name);
+
       if (!developer_email || !game_name) {
         return res.status(400).json({ message: "Developer email and game name are required." });
       }
