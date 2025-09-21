@@ -91,6 +91,60 @@ export default async function handler(req, res) {
     }
   }
 
-  res.setHeader("Allow", ["GET", "POST"]);
+    if (req.method === "PUT") {
+    // Fetch games by developer email
+    try {
+      const { id } = req.query;
+      const { developer_email, ...updateData } = req.body;
+
+      if (!id || !developer_email) {
+        return res
+          .status(400)
+          .json({ message: "Game ID and developer email are required." });
+      }
+
+      const game = await db("games").where({ id, developer_email }).first();
+      if (!game) {
+        return res
+          .status(404)
+          .json({ message: "Game not found or you don't have permission to edit it." });
+      }
+
+      await db("games").where({ id, developer_email }).update(updateData);
+      return res.status(200).json({ message: "Game updated successfully" });
+    } catch (error) {
+      console.error("Error fetching games:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+  if (req.method === "DELETE") {
+    // Fetch games by developer email
+    try {
+      const { id, developer_email } = req.query;
+
+      if (!id || !developer_email) {
+        return res
+          .status(400)
+          .json({ message: "Game ID and developer email are required." });
+      }
+
+      const game = await db("games").where({ id, developer_email }).first();
+      if (!game) {
+        return res
+          .status(404)
+          .json({ message: "Game not found or you don't have permission to delete it." });
+      }
+
+      await db("games").where({ id, developer_email }).del();
+      return res.status(200).json({ message: "Game deleted successfully" });
+    } catch (error) {
+      console.error("Error fetching games:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+
+  res.setHeader("Allow", ["GET", "POST", "PUT", "DELETE"]);
   return res.status(405).json({ message: `Method ${req.method} not allowed` });
 }
