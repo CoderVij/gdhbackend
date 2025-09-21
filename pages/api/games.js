@@ -34,8 +34,8 @@ export default async function handler(req, res) {
         description,
       } = req.body;
 
-      console.log("developer email...", developer_email);
-      console.log("game name...", game_name);
+      //console.log("developer email...", developer_email);
+      //console.log("game name...", game_name);
 
       if (!developer_email || !game_name) {
         return res.status(400).json({ message: "Developer email and game name are required." });
@@ -66,7 +66,7 @@ export default async function handler(req, res) {
         gameId: result.insertId,
       });
     } catch (error) {
-      console.error("Error inserting game:", error);
+      console.error("Error POST inserting game:", error);
       return res.status(500).json({ message: "Internal server error" });
     }
   }
@@ -87,63 +87,84 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ games: rows });
     } catch (error) {
-      console.error("Error fetching games:", error);
+      console.error("Error GET fetching games:", error);
       return res.status(500).json({ message: "Internal server error" });
     }
   }
 
-    if (req.method === "PUT") {
-    // Fetch games by developer email
-    try {
-      const { id } = req.query;
-      const { developer_email, ...updateData } = req.body;
+  if (req.method === "PUT") {
+  try {
+    const { id } = req.query;
+    const { developer_email, ...updateData } = req.body;
 
-      if (!id || !developer_email) {
-        return res
-          .status(400)
-          .json({ message: "Game ID and developer email are required." });
-      }
-
-      const game = await developers("games").where({ id, developer_email }).first();
-      if (!game) {
-        return res
-          .status(404)
-          .json({ message: "Game not found or you don't have permission to edit it." });
-      }
-
-      await developers("games").where({ id, developer_email }).update(updateData);
-      return res.status(200).json({ message: "Game updated successfully" });
-    } catch (error) {
-      console.error("Error fetching games:", error);
-      return res.status(500).json({ message: "Internal server error" });
+    if (!id || !developer_email) {
+      return res
+        .status(400)
+        .json({ message: "Game ID and developer email are required." });
     }
-  }
 
-  if (req.method === "DELETE") {
-    // Fetch games by developer email
-    try {
-      const { id, developer_email } = req.query;
-
-      if (!id || !developer_email) {
-        return res
-          .status(400)
-          .json({ message: "Game ID and developer email are required." });
-      }
-
-      const game = await developers("games").where({ id, developer_email }).first();
-      if (!game) {
-        return res
-          .status(404)
-          .json({ message: "Game not found or you don't have permission to delete it." });
-      }
-
-      await developers("games").where({ id, developer_email }).del();
-      return res.status(200).json({ message: "Game deleted successfully" });
-    } catch (error) {
-      console.error("Error fetching games:", error);
-      return res.status(500).json({ message: "Internal server error" });
+    // Check if game exists and belongs to this developer
+    const [rows] = await developers.query(
+      "SELECT * FROM games WHERE id = ? AND developer_email = ?",
+      [id, developer_email]
+    );
+    if (rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Game not found or you don't have permission to edit it." });
     }
+
+    // Build update query dynamically
+    const fields = Object.keys(updateData)
+      .map((key) => `${key} = ?`)
+      .join(", ");
+    const values = Object.values(updateData);
+
+    if (fields.length > 0) {
+      await developers.query(
+        `UPDATE games SET ${fields} WHERE id = ? AND developer_email = ?`,
+        [...values, id, developer_email]
+      );
+    }
+
+    return res.status(200).json({ message: "Game updated successfully" });
+  } catch (error) {
+    console.error("Error PUT updating game:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
+}
+
+if (req.method === "DELETE") {
+  try {
+    const { id, developer_email } = req.query;
+
+    if (!id || !developer_email) {
+      return res
+        .status(400)
+        .json({ message: "Game ID and developer email are required." });
+    }
+
+    const [rows] = await developers.query(
+      "SELECT * FROM games WHERE id = ? AND developer_email = ?",
+      [id, developer_email]
+    );
+    if (rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Game not found or you don't have permission to delete it." });
+    }
+
+    await developers.query("DELETE FROM games WHERE id = ? AND developer_email = ?", [
+      id,
+      developer_email,
+    ]);
+
+    return res.status(200).json({ message: "Game deleted successfully" });
+  } catch (error) {
+    console.error("Error DELETE removing game:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
 
 
   res.setHeader("Allow", ["GET", "POST", "PUT", "DELETE"]);
