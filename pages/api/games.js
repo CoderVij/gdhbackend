@@ -1,4 +1,4 @@
-import { users, developers } from "../../lib/db"; // adjust path if needed
+import {  developers } from "../../lib/db"; // adjust path if needed
 import cors from "../../lib/cors";
 
 
@@ -104,14 +104,14 @@ export default async function handler(req, res) {
           .json({ message: "Game ID and developer email are required." });
       }
 
-      const game = await db("games").where({ id, developer_email }).first();
+      const game = await developers("games").where({ id, developer_email }).first();
       if (!game) {
         return res
           .status(404)
           .json({ message: "Game not found or you don't have permission to edit it." });
       }
 
-      await db("games").where({ id, developer_email }).update(updateData);
+      await developers("games").where({ id, developer_email }).update(updateData);
       return res.status(200).json({ message: "Game updated successfully" });
     } catch (error) {
       console.error("Error fetching games:", error);
@@ -130,14 +130,14 @@ export default async function handler(req, res) {
           .json({ message: "Game ID and developer email are required." });
       }
 
-      const game = await db("games").where({ id, developer_email }).first();
+      const game = await developers("games").where({ id, developer_email }).first();
       if (!game) {
         return res
           .status(404)
           .json({ message: "Game not found or you don't have permission to delete it." });
       }
 
-      await db("games").where({ id, developer_email }).del();
+      await developers("games").where({ id, developer_email }).del();
       return res.status(200).json({ message: "Game deleted successfully" });
     } catch (error) {
       console.error("Error fetching games:", error);
