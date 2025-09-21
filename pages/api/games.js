@@ -43,10 +43,11 @@ export default async function handler(req, res) {
 
       const [result] = await developers.query(
         `INSERT INTO games 
-          (developer_email, game_name, store_url_android, store_url_ios, store_url_steam, store_url_other, tagline, genres, built_with, platforms, description)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (developer_email, developer_name, game_name, store_url_android, store_url_ios, store_url_steam, store_url_other, tagline, genres, built_with, platforms, description)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`,
         [
           developer_email,
+          developer_name || null,
           game_name,
           store_url_android || null,
           store_url_ios || null,
