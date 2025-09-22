@@ -71,26 +71,44 @@ export default async function handler(req, res) {
     }
   }
 
-  if (req.method === "GET") {
-    // Fetch games by developer email
-    try {
-      const { developer_email } = req.query;
+    if (req.method === "GET") {
+      try {
+        const { developer_email } = req.query;
 
-      if (!developer_email) {
-        return res.status(400).json({ message: "Developer email is required." });
+        let query;
+        let params = [];
+
+        if (developer_email) {
+          // ✅ Fetch only this developer's games (for profile page)
+          query = `
+            SELECT g.*, COUNT(v.id) AS votes
+            FROM games g
+            LEFT JOIN game_votes v ON g.id = v.game_id
+            WHERE g.developer_email = ?
+            GROUP BY g.id
+            ORDER BY g.created_at DESC
+          `;
+          params.push(developer_email);
+        } else {
+          // ✅ Fetch all games (for gameslist.js)
+          query = `
+            SELECT g.*, COUNT(v.id) AS votes
+            FROM games g
+            LEFT JOIN game_votes v ON g.id = v.game_id
+            GROUP BY g.id
+            ORDER BY votes DESC, g.created_at DESC
+          `;
+        }
+
+        const [rows] = await developers.query(query, params);
+
+        return res.status(200).json({ games: rows });
+      } catch (error) {
+        console.error("Error GET fetching games:", error);
+        return res.status(500).json({ message: "Internal server error" });
       }
-
-      const [rows] = await developers.query(
-        "SELECT * FROM games WHERE developer_email = ? ORDER BY created_at DESC",
-        [developer_email]
-      );
-
-      return res.status(200).json({ games: rows });
-    } catch (error) {
-      console.error("Error GET fetching games:", error);
-      return res.status(500).json({ message: "Internal server error" });
     }
-  }
+
 
   if (req.method === "PUT") {
   try {
