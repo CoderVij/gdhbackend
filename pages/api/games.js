@@ -22,6 +22,7 @@ export default async function handler(req, res) {
     try {
       const {
         developer_email,
+        developer_name,
         game_name,
         store_url_android,
         store_url_ios,
