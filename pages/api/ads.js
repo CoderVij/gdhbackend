@@ -28,6 +28,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
+  console.log("start of formdata...", req.body);
   try {
     // Collect FormData from request (image + fields)
     const chunks = [];
