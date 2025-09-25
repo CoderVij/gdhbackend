@@ -1,6 +1,5 @@
-import multer from "multer";
-import path from "path";
-import fs from "fs";
+
+import fetch from "node-fetch";
 import { users } from "../../lib/db";
 import cors from "../../lib/cors";
 
@@ -11,68 +10,60 @@ function runMiddleware(req, res, fn) {
 }
 
 
-
-// Ensure upload folder exists
-const uploadPath = path.join(process.cwd(), "public/uploads/ads");
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    const userId = req.body.userId || "0";
-    const timestamp = Date.now();
-    const ext = path.extname(file.originalname);
-    cb(null, `ad_${userId}_${timestamp}${ext}`);
-  },
-});
-
-const upload = multer({ storage });
-
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: false, // We'll handle FormData manually
   },
 };
 
 export default async function handler(req, res) {
+
   await runMiddleware(req, res, cors);
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
   try {
-    await runMiddleware(req, res, upload.single("image"));
+    // Collect FormData from request (image + fields)
+    const chunks = [];
+    for await (const chunk of req) chunks.push(chunk);
+    const rawBody = Buffer.concat(chunks);
 
-    const { title = "", description = "", destination_url, category = "", userId } = req.body;
+    // Send to Hostgator PHP endpoint
+    const uploadRes = await fetch("https://gdd.freakoutgames.com/upload_ad.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": req.headers["content-type"],
+      },
+      body: rawBody,
+    });
 
-    if (!destination_url) {
-      return res.status(400).json({ error: "Destination URL is required" });
+    const uploadData = await uploadRes.json();
+    if (!uploadData.success) {
+      return res.status(400).json({ error: uploadData.error || "Upload failed" });
     }
 
-    if (!req.file) {
-      return res.status(400).json({ error: "Image upload is required" });
-    }
+    // Extract other fields
+    const formData = new URLSearchParams(req.url.split("?")[1] || "");
+    const title = formData.get("title") || "";
+    const description = formData.get("description") || "";
+    const destination_url = formData.get("destination_url") || "";
+    const category = formData.get("category") || "";
 
-    const imageUrl = `https://gdd.freakoutgames.com/uploads/ads/${req.file.filename}`;
-
+    // Save to database
     await users.execute(
       "INSERT INTO ads (title, description, destination_url, category, image_path) VALUES (?, ?, ?, ?, ?)",
-      [title, description, destination_url, category, imageUrl]
+      [title, description, destination_url, category, uploadData.imageUrl]
     );
 
-    return res.status(200).json({ message: "Ad created successfully!", imageUrl });
+    res.status(200).json({ message: "Ad created successfully!", imageUrl: uploadData.imageUrl });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" });
   }
 }
