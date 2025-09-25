@@ -2,14 +2,15 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { users } from "../../lib/db";
+import cors from "../../lib/cors";
 
 function runMiddleware(req, res, fn) {
   return new Promise((resolve, reject) => {
-    fn(req, res, (result) =>
-      result instanceof Error ? reject(result) : resolve(result)
-    );
+    fn(req, res, (result) => (result instanceof Error ? reject(result) : resolve(result)));
   });
 }
+
+
 
 // Ensure upload folder exists
 const uploadPath = path.join(process.cwd(), "public/uploads/ads");
@@ -38,15 +39,12 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  //  Add CORS headers manually
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  await runMiddleware(req, res, cors);
 
-  //  Handle preflight request
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
+
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
