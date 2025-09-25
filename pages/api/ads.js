@@ -55,6 +55,7 @@ export default async function handler(req, res) {
     const destination_url = formData.get("destination_url") || "";
     const category = formData.get("category") || "";
 
+    console.log("destination url...", destination_url);
     // Save to database
     await users.execute(
       "INSERT INTO ads (title, description, destination_url, category, image_path) VALUES (?, ?, ?, ?, ?)",
