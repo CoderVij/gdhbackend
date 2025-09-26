@@ -46,14 +46,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "No image uploaded" });
     }
 
-    const fileStream = fs.createReadStream(file.filepath);
-
+    // Read the file as Buffer instead of using a stream
+    const fileBuffer = fs.readFileSync(file.filepath);
+    
+    // Create a Blob from the buffer
+    const blob = new Blob([fileBuffer]);
+    
+    // Alternative: You can also use the buffer directly with a custom approach
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
     formData.append("destination_url", destination_url);
     formData.append("category", category);
-    formData.append("image", fileStream, file.originalFilename);
+    
+    // Append as Blob with filename
+    formData.append("image", blob, file.originalFilename);
 
     // Send to Hostgator
     const uploadRes = await fetch(
@@ -77,6 +84,9 @@ export default async function handler(req, res) {
       "INSERT INTO ads (title, description, destination_url, category, image_path) VALUES (?, ?, ?, ?, ?)",
       [title, description, destination_url, category, uploadData.imageUrl]
     );
+
+    // Clean up temporary file
+    fs.unlinkSync(file.filepath);
 
     res.status(200).json({
       message: "Ad created successfully!",
