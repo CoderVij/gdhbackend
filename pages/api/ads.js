@@ -54,6 +54,7 @@ export default async function handler(req, res) {
          ORDER BY ads.id DESC`
       );
 
+      console.log("user....", user);
       return res.status(200).json({
         user: {
           id: user.id,
