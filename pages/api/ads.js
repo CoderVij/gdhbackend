@@ -34,6 +34,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Email is required" });
       }
 
+
       // 1. Fetch user details
       const [userRows] = await users.query(
         "SELECT id, isPremium FROM users WHERE email = ?",
@@ -46,15 +47,26 @@ export default async function handler(req, res) {
 
       const user = userRows[0];
 
+
       // 2. Fetch ads
       const [ads] = await users.query(
-        `SELECT ads.id, ads.title, ads.description, ads.destination_url, ads.category, ads.image_path, users.email
+        `SELECT ads.id, ads.title, ads.description, ads.destination_url, ads.category, ads.image_path, users.email,
+         (SELECT COUNT(*) FROM ads WHERE ads.user_id = users.id) AS user_ad_count
          FROM ads
          JOIN users ON ads.user_id = users.id
          ORDER BY ads.id DESC`
       );
 
-      console.log("user....", user);
+       const adCount = ads[0].user_ad_count;
+       const maxAds = user.isPremium ? 5 : 1; // Example: free users max 1 ads, premium max 5
+
+      if (adCount >= maxAds) {
+        return res.status(403).json({
+          error: `Ad creation limit reached. Maximum allowed: ${maxAds}`,
+        });
+      }
+
+      //console.log("user....", user);
       return res.status(200).json({
         user: {
           id: user.id,
@@ -78,7 +90,7 @@ export default async function handler(req, res) {
     }
 
     const fullImagePath = adRows[0].image_path; 
-    // Example: "https://gdd.freakoutgames.com/uploads/ads/ad1.png"
+  
 
     //  Extract just the filename (ad1.png)
     const imageFilename = fullImagePath.split('/').pop();
