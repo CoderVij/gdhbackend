@@ -58,6 +58,7 @@ export default async function handler(req, res) {
       );
 
        const adCount = ads[0].user_ad_count;
+       /*
        const maxAds = user.isPremium ? 5 : 1; // Example: free users max 1 ads, premium max 5
 
       if (adCount > maxAds) {
@@ -65,12 +66,13 @@ export default async function handler(req, res) {
           error: `Ad creation limit reached. Maximum allowed: ${maxAds}`,
         });
       }
-
+      */
       //console.log("user....", user);
       return res.status(200).json({
         user: {
           id: user.id,
           isPremium: user.isPremium,
+          adCount:adCount
         },
         ads,
       });
