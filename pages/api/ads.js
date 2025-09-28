@@ -117,6 +117,13 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "No image uploaded" });
       }
 
+      const [userRows] = await users.query("SELECT id FROM users WHERE email = ?", [email]);
+      if (!userRows.length) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const userId = userRows[0].id;
+
       const fileBuffer = fs.readFileSync(file.filepath);
       const blob = new Blob([fileBuffer]);
       const formData = new FormData();
@@ -126,6 +133,7 @@ export default async function handler(req, res) {
       formData.append("destination_url", destination_url);
       formData.append("category", category);
       formData.append("image", blob, file.originalFilename);
+      formData.append("useId", userId);
 
       const uploadRes = await fetch("https://gdd.freakoutgames.com/upload_ad.php", {
         method: "POST",
@@ -139,12 +147,7 @@ export default async function handler(req, res) {
         });
       }
 
-      const [userRows] = await users.query("SELECT id FROM users WHERE email = ?", [email]);
-      if (!userRows.length) {
-        return res.status(404).json({ error: "User not found" });
-      }
 
-      const userId = userRows[0].id;
 
       await users.execute(
         "INSERT INTO ads (title, description, destination_url, category, image_path, user_id) VALUES (?, ?, ?, ?, ?, ?)",
