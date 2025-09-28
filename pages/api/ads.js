@@ -66,33 +66,40 @@ export default async function handler(req, res) {
 
     // ------------------ DELETE AN AD ------------------
     if (req.method === "DELETE") {
-      const { id } = req.query;
-      if (!id) {
-        return res.status(400).json({ error: "Ad ID is required" });
-      }
-
-      const [adRows] = await users.query("SELECT image_path FROM ads WHERE id = ?", [id]);
-      if (!adRows.length) {
-        return res.status(404).json({ error: "Ad not found" });
-      }
-      const imagePath = adRows[0].image_path;
-
-      // Call Hostgator API to delete the image
-      const deleteRes = await fetch("https://gdd.freakoutgames.com/delete_ad_image.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imagePath }),
-      });
-
-      const deleteData = await deleteRes.json();
-      if (!deleteData.success) {
-        console.warn("Image deletion failed on server:", deleteData.error);
-      }
-
-      await users.execute("DELETE FROM ads WHERE id = ?", [id]);
-
-      return res.status(200).json({ message: "Ad deleted successfully" });
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ error: "Ad ID is required" });
     }
+
+    // Get ad from DB
+    const [adRows] = await users.query("SELECT image_path FROM ads WHERE id = ?", [id]);
+    if (!adRows.length) {
+      return res.status(404).json({ error: "Ad not found" });
+    }
+
+    const fullImagePath = adRows[0].image_path; 
+    // Example: "https://gdd.freakoutgames.com/uploads/ads/ad1.png"
+
+    //  Extract just the filename (ad1.png)
+    const imageFilename = fullImagePath.split('/').pop();
+
+    // Call PHP endpoint with only the filename
+    const deleteRes = await fetch("https://gdd.freakoutgames.com/delete_ad_image.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename: imageFilename }),
+    });
+
+    const deleteData = await deleteRes.json();
+    if (!deleteData.success) {
+      console.warn("Image deletion failed on server:", deleteData.error);
+    }
+
+    // Delete DB entry
+    await users.execute("DELETE FROM ads WHERE id = ?", [id]);
+
+    return res.status(200).json({ message: "Ad deleted successfully" });
+  }
 
     // ------------------ CREATE NEW AD ------------------
     if (req.method === "POST") {
