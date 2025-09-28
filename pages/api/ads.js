@@ -133,7 +133,7 @@ export default async function handler(req, res) {
       formData.append("destination_url", destination_url);
       formData.append("category", category);
       formData.append("image", blob, file.originalFilename);
-      formData.append("useId", userId);
+      formData.append("userId", userId);
 
       const uploadRes = await fetch("https://gdd.freakoutgames.com/upload_ad.php", {
         method: "POST",
