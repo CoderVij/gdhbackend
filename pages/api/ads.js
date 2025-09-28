@@ -57,7 +57,12 @@ export default async function handler(req, res) {
          ORDER BY ads.id DESC`
       );
 
-       const adCount = ads[0].user_ad_count;
+
+      if (!ads.length) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      const adCount = ads[0].user_ad_count;
        /*
        const maxAds = user.isPremium ? 5 : 1; // Example: free users max 1 ads, premium max 5
 
