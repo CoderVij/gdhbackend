@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     const { category } = req.query;
 
     // Fetch ads from DB (filter by category if provided)
-    let query = "SELECT title, destination_url, image_path FROM ads";
+    let query = "SELECT id, title, destination_url, image_path FROM ads";
     const params = [];
 
     if (category) {
@@ -31,6 +31,7 @@ export default async function handler(req, res) {
 
     // Return ads in clean JSON format
     const ads = rows.map((row) => ({
+      id:row.id,
       title: row.title,
       url: row.destination_url,
       image: row.image_path,
